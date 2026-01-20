@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAML Demo - Swedish eID</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #006aa7;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #006aa7;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 500;
+            margin-right: 10px;
+        }
+        .btn:hover {
+            background-color: #005588;
+        }
+        .btn-secondary {
+            background-color: #fecc00;
+            color: #333;
+        }
+        .btn-secondary:hover {
+            background-color: #e6b800;
+        }
+        .welcome {
+            background-color: #e8f4e8;
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .info {
+            background-color: #e8f0f8;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 30px;
+            font-size: 14px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SAML Demo for Swedish eID</h1>
+        <p class="subtitle">Spring Security SAML2 Service Provider Demo</p>
+
+        <div th:if="${authenticated}" class="welcome">
+            <p>Welcome, <strong th:text="${name}">User</strong>!</p>
+            <p>You are authenticated via SAML2.</p>
+        </div>
+
+        <div th:unless="${authenticated}">
+            <p>This demo application demonstrates SAML2 authentication with a test Identity Provider.</p>
+            <p>Click the button below to authenticate:</p>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <a th:unless="${authenticated}" href="/saml2/authenticate/ssocircle" class="btn">Login with SAML</a>
+            <a th:if="${authenticated}" href="/user" class="btn">View My Profile</a>
+            <a th:if="${authenticated}" href="/logout" class="btn btn-secondary">Logout</a>
+        </div>
+
+        <div class="info">
+            <strong>Note:</strong> This demo uses SSOCircle as the Identity Provider.
+            To complete the setup, you need to register this SP at
+            <a href="https://idp.ssocircle.com" target="_blank">SSOCircle</a>.
+            <br><br>
+            SP Metadata URL: <code>http://localhost:8080/saml2/service-provider-metadata/ssocircle</code>
+        </div>
+    </div>
+</body>
+</html>

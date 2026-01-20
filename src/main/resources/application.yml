@@ -1,0 +1,27 @@
+server:
+  port: 8080
+
+spring:
+  security:
+    saml2:
+      relyingparty:
+        registration:
+          ssocircle:
+            entity-id: saml-demo-sp
+            signing:
+              credentials:
+                - private-key-location: classpath:credentials/sp.key
+                  certificate-location: classpath:credentials/sp.crt
+            decryption:
+              credentials:
+                - private-key-location: classpath:credentials/sp.key
+                  certificate-location: classpath:credentials/sp.crt
+            assertingparty:
+              metadata-uri: https://idp.ssocircle.com/meta-idp.xml
+            singlelogout:
+              binding: POST
+              response-url: "{baseUrl}/logout/saml2/slo"
+
+logging:
+  level:
+    org.springframework.security: DEBUG

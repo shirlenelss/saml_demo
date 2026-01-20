@@ -2,6 +2,9 @@
 
 A Spring Boot application demonstrating SAML 2.0 authentication using Spring Security SAML2 Service Provider.
 
+## Short Description
+The app is a SAML Service Provider (SP) implemented with Spring Security SAML2. It has a relying-party registration (example id **ssocircle**) configured in application.yml and uses keys/certs placed under src/main/resources/credentials/. The controller at UserController reads attributes from the authenticated Saml2AuthenticatedPrincipal.
+
 ## Architecture
 
 ```
@@ -18,18 +21,18 @@ A Spring Boot application demonstrating SAML 2.0 authentication using Spring Sec
 ## Prerequisites
 
 - Java 21 or higher
-- Gradle 8.x
+- Maven 4
 
 ## Quick Start
 
 1. **Build the application**
    ```bash
-   ./gradlew build
+   mvn build
    ```
 
 2. **Run the application**
    ```bash
-   ./gradlew bootRun
+   mvn spring-boot:run
    ```
 
 3. **Access the application**
