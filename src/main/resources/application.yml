@@ -2,12 +2,16 @@ server:
   port: 8080
 
 spring:
+  jmx:
+    enabled: false
   security:
     saml2:
       relyingparty:
         registration:
-          ssocircle:
-            entity-id: saml-demo-sp
+          keycloak:
+            entity-id: spring-sp-demo
+            assertingparty:
+              metadata-uri: classpath:credentials/idp-metadata.xml
             signing:
               credentials:
                 - private-key-location: classpath:credentials/sp.key
@@ -16,8 +20,6 @@ spring:
               credentials:
                 - private-key-location: classpath:credentials/sp.key
                   certificate-location: classpath:credentials/sp.crt
-            assertingparty:
-              metadata-uri: https://idp.ssocircle.com/meta-idp.xml
             singlelogout:
               binding: POST
               response-url: "{baseUrl}/logout/saml2/slo"

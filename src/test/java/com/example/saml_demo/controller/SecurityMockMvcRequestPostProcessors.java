@@ -17,7 +17,7 @@ public class SecurityMockMvcRequestPostProcessors {
                 principal.getName(),
                 principal.getAttributes()
         );
-        defaultPrincipal.setRelyingPartyRegistrationId("ssocircle");
+        defaultPrincipal.setRelyingPartyRegistrationId("Keycloak");
 
         Saml2Authentication saml2Authentication = new Saml2Authentication(
                 defaultPrincipal,

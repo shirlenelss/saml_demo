@@ -1,34 +1,34 @@
 # SAML Demo for Swedish eID
 
-A Spring Boot application demonstrating SAML 2.0 authentication using Spring Security SAML2 Service Provider.
-
-## Short Description
-The app is a SAML Service Provider (SP) implemented with Spring Security SAML2. It has a relying-party registration (example id **ssocircle**) configured in application.yml and uses keys/certs placed under src/main/resources/credentials/. The controller at UserController reads attributes from the authenticated Saml2AuthenticatedPrincipal.
+A Spring Boot application demonstrating SAML 2.0 authentication using Spring Security SAML2 Service Provider with Keycloak as the Identity Provider.
 
 ## Architecture
 
 ```
 ┌─────────────────┐         SAML 2.0          ┌─────────────────┐
-│   Spring Boot   │  ◄──────────────────────► │   SSOCircle     │
-│   Application   │     AuthnRequest/         │   (Test IdP)    │
-│   (SP)          │     SAMLResponse          │                 │
+│   Spring Boot   │  ◄──────────────────────► │    Keycloak     │
+│   Application   │     AuthnRequest/         │    (IdP)        │
+│   (SP)          │     SAMLResponse          │    Port 8081    │
+│   Port 8080     │                           │                 │
 └─────────────────┘                           └─────────────────┘
 ```
 
-- **Service Provider (SP)**: This Spring Boot application
-- **Identity Provider (IdP)**: SSOCircle (free test IdP)
+- **Service Provider (SP)**: This Spring Boot application (`spring-sp-demo`)
+- **Identity Provider (IdP)**: Keycloak running in Docker
 
 ## Prerequisites
 
 - Java 21 or higher
-- Maven 4
+- Maven 3.6+
+- Docker & Docker Compose
 
 ## Quick Start
 
-1. **Build the application**
+1. **Start Keycloak IdP**
    ```bash
-   mvn build
+   docker-compose up -d
    ```
+   Wait for Keycloak to start (check http://localhost:8081)
 
 2. **Run the application**
    ```bash
@@ -37,19 +37,41 @@ The app is a SAML Service Provider (SP) implemented with Spring Security SAML2. 
 
 3. **Access the application**
    - Home page: http://localhost:8080/
-   - SP Metadata: http://localhost:8080/saml2/service-provider-metadata/ssocircle
+   - Click "Login with SAML" to authenticate
 
-## SSOCircle IdP Setup
+## Keycloak Setup
 
-To complete the SAML integration, you need to register this SP with SSOCircle:
+Keycloak admin console: http://localhost:8081/admin
+- **Username:** `admin`
+- **Password:** ``
 
-1. Create a free account at https://idp.ssocircle.com
-2. Log in and navigate to "Manage Metadata" → "Add new Service Provider"
-3. Enter your SP metadata URL: `http://localhost:8080/saml2/service-provider-metadata/ssocircle`
-4. Or paste the metadata XML directly (fetch from the URL above)
-5. Save the configuration
+### Configure SAML Client
 
-After registration, you can authenticate via SAML by clicking "Login with SAML" on the home page.
+1. Select **SAML-realm** from the realm dropdown
+2. Go to **Clients** → **spring-sp-demo**
+3. Ensure the client is enabled with these settings:
+   - **Root URL:** `http://localhost:8080`
+   - **Valid redirect URIs:** `http://localhost:8080/*`
+
+### Add Attribute Mappers
+
+To send user attributes in SAML assertions:
+
+1. Go to **Clients** → **spring-sp-demo** → **Client scopes** → **spring-sp-demo-dedicated**
+2. Click **Add mapper** → **By configuration** → **User Property**
+3. Create these mappers:
+
+| Name | Property | SAML Attribute Name | NameFormat |
+|------|----------|---------------------|------------|
+| EmailAddress | email | EmailAddress | Basic |
+| FirstName | firstName | FirstName | Basic |
+| LastName | lastName | LastName | Basic |
+
+### Create Test User
+
+1. Go to **Users** → **Add user**
+2. Fill in username, email, first name, last name
+3. Go to **Credentials** tab → Set password (disable Temporary)
 
 ## Project Structure
 
@@ -66,7 +88,8 @@ src/main/resources/
 ├── application.yml               # SAML2 configuration
 ├── credentials/
 │   ├── sp.key                    # SP private key
-│   └── sp.crt                    # SP certificate
+│   ├── sp.crt                    # SP certificate
+│   └── idp-metadata.xml          # Keycloak IdP metadata
 └── templates/
     ├── home.html                 # Landing page template
     └── user.html                 # User attributes template
@@ -78,21 +101,17 @@ src/main/resources/
 |----------|-------------|---------------|
 | `/` or `/home` | Landing page with login/logout links | No |
 | `/user` | Display authenticated user's SAML attributes | Yes |
-| `/saml2/authenticate/ssocircle` | Initiate SAML login | No |
+| `/saml2/authenticate/keycloak` | Initiate SAML login | No |
 | `/logout` | Logout and end session | Yes |
-| `/saml2/service-provider-metadata/ssocircle` | SP metadata XML | No |
+| `/saml2/service-provider-metadata/keycloak` | SP metadata XML | No |
 
 ## SAML Attributes
 
-After successful authentication, the following attributes may be available (depending on IdP configuration):
+After successful authentication, the following attributes are available (if configured in Keycloak):
 
 - `EmailAddress` - User's email
 - `FirstName` - User's first name
 - `LastName` - User's last name
-
-For Swedish eID integration, additional attributes would include:
-- `personnummer` - Swedish personal identity number
-- Additional identity attributes as configured by the IdP
 
 ## Configuration
 
@@ -104,14 +123,18 @@ spring:
     saml2:
       relyingparty:
         registration:
-          ssocircle:
-            entity-id: saml-demo-sp
+          keycloak:
+            entity-id: spring-sp-demo
+            assertingparty:
+              metadata-uri: classpath:credentials/idp-metadata.xml
             signing:
               credentials:
                 - private-key-location: classpath:credentials/sp.key
                   certificate-location: classpath:credentials/sp.crt
-            assertingparty:
-              metadata-uri: https://idp.ssocircle.com/meta-idp.xml
+            decryption:
+              credentials:
+                - private-key-location: classpath:credentials/sp.key
+                  certificate-location: classpath:credentials/sp.crt
 ```
 
 ## Generating New SP Credentials
@@ -126,35 +149,52 @@ openssl req -x509 -newkey rsa:2048 \
   -subj "/CN=saml-demo-sp/O=Demo/C=SE"
 ```
 
+After regenerating, update the certificate in Keycloak:
+1. Go to **Clients** → **spring-sp-demo** → **Keys**
+2. Import the new `sp.crt` certificate
+3. Currently, both key and crt is encrypted by sop age, so if this is production code,
+the sp.key and sp.crt (excluded fro security) should be decrypted from sp.key.enc and sp.crt.enc before use.
+But since this is a demo project, I skip that step here for simplicity.
+
+## Updating IdP Metadata
+
+If Keycloak configuration changes, refresh the IdP metadata:
+
+```bash
+curl http://localhost:8081/realms/SAML-realm/protocol/saml/descriptor \
+  -o src/main/resources/credentials/idp-metadata.xml
+```
+
 ## Running Tests
 
 ```bash
-./gradlew test
+mvn test
 ```
 
-## Using a Different IdP
-
-To use a different Identity Provider, update `application.yml`:
-
-1. Change the registration name (e.g., `ssocircle` → `okta`)
-2. Update the `metadata-uri` to point to your IdP's metadata
-3. Register this SP with your IdP using the metadata endpoint
+Run a specific test class:
+```bash
+mvn test -Dtest=HomeControllerTest
+```
 
 ## Troubleshooting
 
-### "Could not find org.opensaml" error
-Ensure the Shibboleth Maven repository is in `build.gradle`:
-```groovy
-repositories {
-    mavenCentral()
-    maven { url 'https://build.shibboleth.net/maven/releases/' }
-}
-```
+### "Invalid requester" error from Keycloak
+- Ensure the SP certificate in Keycloak matches `sp.crt`
+- Check that `spring-sp-demo` client exists in SAML-realm
 
 ### SAML Response validation fails
 - Ensure system clock is synchronized (SAML assertions are time-sensitive)
 - Check that SP certificate matches what's registered with the IdP
 - Enable debug logging: `logging.level.org.springframework.security: DEBUG`
+
+### Attributes not showing on user page
+- Add SAML attribute mappers in Keycloak (see "Add Attribute Mappers" section)
+- Ensure the test user has email, firstName, lastName filled in
+
+### Keycloak not starting
+```bash
+docker-compose logs keycloak
+```
 
 ## License
 

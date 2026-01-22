@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="html">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -78,17 +78,17 @@
         </div>
 
         <div style="margin-top: 20px;">
-            <a th:unless="${authenticated}" href="/saml2/authenticate/ssocircle" class="btn">Login with SAML</a>
+            <a th:unless="${authenticated}" href="/saml2/authenticate/keycloak" class="btn">Login with SAML</a>
             <a th:if="${authenticated}" href="/user" class="btn">View My Profile</a>
             <a th:if="${authenticated}" href="/logout" class="btn btn-secondary">Logout</a>
         </div>
 
         <div class="info">
-            <strong>Note:</strong> This demo uses SSOCircle as the Identity Provider.
+            <strong>Note:</strong> This demo uses Keycloak as the Identity Provider.
             To complete the setup, you need to register this SP at
-            <a href="https://idp.ssocircle.com" target="_blank">SSOCircle</a>.
+            <a href="http://localhost:8081/admin/master/console" target="_blank">Keycloak</a>.
             <br><br>
-            SP Metadata URL: <code>http://localhost:8080/saml2/service-provider-metadata/ssocircle</code>
+            SP Metadata URL: <code>http://localhost:8080/saml2/service-provider-metadata/keycloak</code>
         </div>
     </div>
 </body>
