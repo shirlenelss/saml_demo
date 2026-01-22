@@ -103,7 +103,7 @@ src/main/resources/
 | `/user` | Display authenticated user's SAML attributes | Yes |
 | `/saml2/authenticate/keycloak` | Initiate SAML login | No |
 | `/logout` | Logout and end session | Yes |
-| `/saml2/service-provider-metadata/keycloak` | SP metadata XML | No |
+| `/saml/metadata/keycloak` | SP metadata XML | No |
 
 ## SAML Attributes
 
