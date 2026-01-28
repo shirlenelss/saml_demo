@@ -18,6 +18,7 @@ public class UserController {
         model.addAttribute("emailAddress", principal.getFirstAttribute("EmailAddress"));
         model.addAttribute("firstName", principal.getFirstAttribute("FirstName"));
         model.addAttribute("lastName", principal.getFirstAttribute("LastName"));
+        model.addAttribute("member", principal.getAttributes().get("member"));
 
         // Get all attributes for display
         Map<String, String> attributes = principal.getAttributes().entrySet().stream()
