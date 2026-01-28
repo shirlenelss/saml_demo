@@ -8,7 +8,7 @@ services:
     command: ["start-dev"]
     environment:
       - KEYCLOAK_ADMIN=admin
-      - KEYCLOAK_ADMIN_PASSWORD=adminDonkeyKong
+      - KEYCLOAK_ADMIN_PASSWORD=admin
     ports:
       - "8081:8080"
     restart: unless-stopped
