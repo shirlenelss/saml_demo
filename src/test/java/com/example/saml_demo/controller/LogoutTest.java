@@ -51,6 +51,6 @@ class LogoutTest {
 
         mockMvc.perform(get("/logout").session(session))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/"));
+                .andExpect(redirectedUrl("/login?logout"));
     }
 }

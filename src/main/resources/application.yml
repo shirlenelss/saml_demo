@@ -11,7 +11,7 @@ spring:
           keycloak:
             entity-id: spring-sp-demo
             assertingparty:
-              metadata-uri: classpath:credentials/idp-metadata.xml
+              metadata-uri: http://localhost:8081/realms/SAML-realm/protocol/saml/descriptor
             signing:
               credentials:
                 - private-key-location: classpath:credentials/sp.key
@@ -27,3 +27,13 @@ spring:
 logging:
   level:
     org.springframework.security: DEBUG
+
+keycloak:
+  admin:
+    server-url: http://localhost:8081
+    realm: master
+    username: admin
+    password: admin
+    client-id: admin-cli
+  target-realm: SAML-realm
+

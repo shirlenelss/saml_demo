@@ -4,10 +4,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import static org.springframework.security.config.Customizer.withDefaults;
 
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.saml2.Saml2LogoutConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
@@ -20,18 +18,29 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/", "/home", "/error").permitAll()
+                // SAML protocol endpoints that must be public
                 .requestMatchers("/saml2/service-provider-metadata/**").permitAll()
-                .requestMatchers("/saml/**").permitAll() // diagnostics and static saml paths
-                .requestMatchers("/saml2/**").permitAll() // diagnostics and static saml paths
                 .requestMatchers("/saml2/authenticate/**").permitAll()
+                .requestMatchers("/login/saml2/sso/**").permitAll()
+                .requestMatchers("/logout/saml2/**").permitAll()
+                // User Management API endpoints - allow public access for now
+                .requestMatchers("/api/users/**").permitAll()
+                // SAML diagnostics endpoints - require authentication
+                .requestMatchers("/saml/registrations").authenticated()
+                .requestMatchers("/saml/metadata/**").authenticated()
+                // User and attribute endpoints - require authentication
+                .requestMatchers("/user").authenticated()
+                .requestMatchers("/keycloak/**").authenticated()
                 .anyRequest().authenticated()
             )
             .saml2Login(withDefaults())
             .saml2Logout(withDefaults())
             .csrf(csrf -> csrf
                 .ignoringRequestMatchers(
-                    new AntPathRequestMatcher("/saml2/**"),
-                    new AntPathRequestMatcher("/logout/saml2/**")
+                    new AntPathRequestMatcher("/saml2/service-provider-metadata/**"),
+                    new AntPathRequestMatcher("/login/saml2/sso/**"),
+                    new AntPathRequestMatcher("/logout/saml2/**"),
+                    new AntPathRequestMatcher("/api/users/**")
                 )
             );
 
